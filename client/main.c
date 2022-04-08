@@ -6,13 +6,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/unistd.h>
+#include <arpa/inet.h>
 
 #define BUF_SIZE 1024
 
-#define SERVER_PORT 9002
+#define SERVER_PORT 9004
 #define SERVER_ADDR "127.0.0.1"
 #define FILE_PATH "../test.txt"
 #define SAVED_FILE_NAME "change.txt"
+
 char buf[BUF_SIZE];
 
 void send_message(int sock) {
@@ -33,15 +35,12 @@ void send_message(int sock) {
         unsigned long number_of_bytes = fread(buf,1, sizeof(buf), in);
         if(number_of_bytes != 0) {
             send(sock, buf, number_of_bytes,0);
-            // recv(sock, buf, number_of_bytes, 0);
-            // printf("%s", buf);
         }
     }
     fclose(in);
 }
 
-int main()
-{
+int main() {
     int sock;
     struct sockaddr_in addr;
 
@@ -59,16 +58,12 @@ int main()
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(SERVER_PORT);
-    addr.sin_addr.s_addr = in_p.s_addr; // inet_addr(SERVER_ADDR);
-    if(connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-    {
+    addr.sin_addr.s_addr = in_p.s_addr;
+    if(connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         perror("connect");
         exit(2);
     }
-
     send_message(sock);
-
-    //printf("%s", buf);
     close(sock);
 
     return 0;

@@ -7,12 +7,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <sys/unistd.h>
+#include <arpa/inet.h>
 
 #define BUF_SIZE 1024
 #define SAVE_DIR "../"
-#define FILE_NAME "test.txt"
 
-#define SERVER_PORT 9002
+#define SERVER_PORT 9004
 #define SERVER_ADDR "127.0.0.1"
 
 char buf[BUF_SIZE];
@@ -20,7 +20,6 @@ char buf[BUF_SIZE];
 void process_message(int sock) {
 
     long bytes_read = 0;
-    printf("Start processing received message...\n");
 
     // receive filename
     char filename[BUF_SIZE];
@@ -29,7 +28,6 @@ void process_message(int sock) {
         return;
     char filepath[BUF_SIZE] = SAVE_DIR;
     strcat(filepath, filename);
-    printf("File will be saved in \"%s\"\n", filepath);
 
     // receive file data
     FILE *out = fopen(filepath, "wb");
@@ -45,11 +43,9 @@ void process_message(int sock) {
         //send(sock, buf, bytes_read, 0);
     }
     fclose(out);
-    printf("File saved\n");
 }
 
-int main()
-{
+int main(int argc, char *argv[]) {
     int sock, listener;
     struct sockaddr_in addr;
     long bytes_read;
@@ -69,18 +65,15 @@ int main()
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(SERVER_PORT);
-    addr.sin_addr.s_addr = in_p.s_addr;//inet_addr(SERVER_ADDR);
-    if(bind(listener, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-    {
+    addr.sin_addr.s_addr = in_p.s_addr;
+    if(bind(listener, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         perror("bind");
         exit(2);
     }
 
-    printf("Listening...\n");
     listen(listener, 1);
 
-    while(1)
-    {
+    while (true) {
         sock = accept(listener, NULL, NULL);
         if(sock < 0) {
             perror("accept");
@@ -88,8 +81,6 @@ int main()
         }
         process_message(sock);
         close(sock);
-        close(listener);
-        break;
     }
 
     return 0;
